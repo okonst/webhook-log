@@ -1,0 +1,12 @@
+{
+    "name": "okonst/webhook-log",
+    "description": "Webhook logger for API testing",
+    "type": "project",
+    "license": "mit",
+    "authors": [
+        {
+            "name": "okonst"
+        }
+    ],
+    "require": {}
+}
