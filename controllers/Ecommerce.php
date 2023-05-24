@@ -45,6 +45,9 @@ class Ecommerce
 	public function sync()
 	{
 		//$newWebhooks = $this->processNewWebhooks();
+		//return $newWebhooks;
+		//////////////////
+
 		// отправляем запрос на сервер
 		$ch = curl_init( ECOMMERCE_WEBHOOK_SYNC_URL . "/new-ecommerce" );
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -60,6 +63,7 @@ class Ecommerce
 
 
 		//return json_encode($newWebhooks, JSON_PRETTY_PRINT);
+		return $result;
 	}
 
 	/**
@@ -94,15 +98,16 @@ class Ecommerce
 		$newWebhooks = [];
 		foreach ($webhooks as $webhook) {
 			// в статусе 'new'
-			if($webhook->status != 'new') continue;
+			if($webhook['status'] != 'new') continue;
 			// за последние 5 минут
-			if($webhook->created < $time5min) continue;
+			$created = new \DateTime($webhook['created']);
+			if($created < $time5min) continue;
 			$newWebhooks[] = [
-				'payload' => json_decode($webhook->payload),
-				'headers' => json_decode($webhook->headers)
+				'payload' => json_decode($webhook['payload']),
+				'headers' => json_decode($webhook['headers'])
 			];
 			// ставим статус 'processed'
-			$this->db->updateWebhookStatus($webhook->id, 'processed');
+			$this->db->updateWebhookStatus($webhook['id'], 'processed');
 		}
 
 		return json_encode($newWebhooks);

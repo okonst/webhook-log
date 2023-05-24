@@ -95,8 +95,7 @@ class DatabaseController{
 	 */
 	public function updateWebhookStatus($id, $status)
 	{
-		$this->db->exec("UPDATE `webhooks` SET `status` = ". $status .
-			" WHERE `id` = ". $id .";");
+		$this->db->exec("UPDATE `webhooks` SET `status` = \"". $status . "\" WHERE `id` = ". $id .";");
 	}
 
 	/**
