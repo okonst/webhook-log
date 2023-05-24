@@ -69,7 +69,7 @@ class Ecommerce
 	{
 		$ch = curl_init( ECOMMERCE_WEBHOOK_LOCAL_URL );
 		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt( $ch, CURLOPT_POSTFIELDS, $webhook->payload;
+		curl_setopt( $ch, CURLOPT_POSTFIELDS, $webhook->payload);
 		//////////////
 		//////////////
 		curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'signature: werfc134rc234rc234'));
