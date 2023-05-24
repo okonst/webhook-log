@@ -6,6 +6,7 @@
 require('vendor/autoload.php');
 require('config.php');
 
+use Controllers\DatabaseController;
 use Controllers\Ecommerce;
 
 // Обработчик ошибок Whoops (https://github.com/filp/whoops)
@@ -13,8 +14,10 @@ $whoops = new \Whoops\Run;
 $whoops->prependHandler(new \Whoops\Handler\PrettyPageHandler);
 $whoops->register();
 
-// Робокасса контроллер
-$robokassa = new Ecommerce;
+// База
+$db = new DatabaseController;
+// контроллер Ecommerce
+$ecommerce = new Ecommerce($db);
 
 // Роутер Klein (https://github.com/klein/klein.php)
 $router = new \Klein\Klein();
@@ -24,19 +27,48 @@ $router = new \Klein\Klein();
 ----------------------------------------------------*/
 
 // Главная страница
-$router->respond('GET', '/', function ($request, $response, $service) use($robokassa) {
+$router->respond('GET', '/', function ($request, $response, $service) use($ecommerce) {
 	// view главной страницы
-    $service->render('view.php', ['table' => "Таблица webhooks"]);
+    $service->render('view.php', ['table' => $ecommerce->prepareWebhooksList()]);
 });
 
-// Новый платеж
-/*$router->respond(['GET', 'POST'], '/pay', function ($request, $response) use($robokassa){
-	// сохраняем новый платеж
-    $robokassa->newPayment($request->params());
-    // редирект на страницу обработки платежа
-    $response->redirect('/handle?InvId='.$request->param('InvId'));
+// Новый webhook Ecommerce
+$router->respond(['GET', 'POST'], '/ecommerce', function ($request, $response) use($ecommerce){
+	
+	// сохраняем новый webhook
+    $ecommerce->saveWebhook($request);
+    // ответ
+    $response->header('Access-Control-Allow-Origin', '*');
+    $response->body('OK');
 });
 
+// Синхронизация Ecommerce с сервером
+$router->respond(['GET'], '/sync-ecommerce', function ($request, $response) use($ecommerce){	
+	// запускаем синхронизацию
+    $result = $ecommerce->sync();
+    // ответ
+    $response->header('Content-Type', 'application/json');
+    $response->body($result);
+});
+
+// Получение новых webhook Ecommerce с сервера для синхронизации
+$router->respond(['POST'], '/new-ecommerce', function ($request, $response) use($ecommerce){	
+	// запускаем синхронизацию
+    $result = $ecommerce->processNewWebhooks();
+    // ответ
+    $response->header('Content-Type', 'application/json');
+    $response->body($result);
+});
+
+// Удаление webhook
+$router->respond('GET', '/remove', function ($request, $response) use($db) {
+	// Удаляем webhook
+	$db->deleteWebhook($request->param('id'));
+    // редирект на главную страницу
+    $response->redirect('/');
+});
+
+/*
 // Новый рекуррентный (повторный) платеж
 $router->respond(['GET', 'POST'], '/recurring', function ($request, $response) use($robokassa) {
     // проверяем корректность платежа
@@ -66,14 +98,6 @@ $router->respond('GET', '/update', function ($request, $response) use($robokassa
 	$robokassa->updatePaymentStatus($request->param('InvId'), $request->param('status'));
     // редирект на страницу обработки платежа
     $response->redirect('/handle?InvId='.$request->param('InvId'));
-});
-
-// Удаление платежа
-$router->respond('GET', '/remove', function ($request, $response) use($robokassa) {
-	// Удаляем платеж
-	$robokassa->deletePayment($request->param('InvId'));
-    // редирект на главную страницу
-    $response->redirect('/');
 });
 
 // Запрос к вебсервису о состоянии платежа

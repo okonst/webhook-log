@@ -91,6 +91,15 @@ class DatabaseController{
 	}
 
 	/**
+	 * Обновить статус webhook
+	 */
+	public function updateWebhookStatus($id, $status)
+	{
+		$this->db->exec("UPDATE `webhooks` SET `status` = ". $status .
+			" WHERE `id` = ". $id .";");
+	}
+
+	/**
 	 * Удалить webhook
 	 * @param int $id - id webhook
 	 */

@@ -8,5 +8,13 @@
             "name": "okonst"
         }
     ],
-    "require": {}
+    "require": {
+        "klein/klein": "^2.1",
+        "filp/whoops": "^2.15"
+    },
+    "autoload": {
+        "psr-4": {
+            "Controllers\\": "controllers"
+        }
+    }
 }

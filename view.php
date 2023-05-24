@@ -73,10 +73,43 @@
 
 		<!-- ТАБЛИЦА С ПЛАТЕЖАМИ -->
 		<h3>Webhooks</h3>
+		<div class="pending clearfix">
+			<button class="btn btn-danger btn-small pull-right" onclick="stopEcommerce();">Stop</button>
+			<button class="btn btn-primary btn-small pull-right" onclick="runEcommerce();">Run</button>
+			
+			<div id="pending-info" class="hide">
+				Pending...
+			</div>
+		</div>
 		<div class="table-responsive">
 			<? echo $this->table; ?>
 		</div>
 
+		<script>
+			var ecommerceInterval = null;
+			var runBTN = null;
+			var stopBTN = null;
+			var pendingEl = null;
+			function runEcommerce(){
+				console.log('runEcommerce');
+				pendingEl = document.getElementById("pending-info");
+  				pendingEl.classList.toggle("hide");
+
+				ecommerceInterval = setInterval(function(){
+					console.log('Cycle');
+					fetch("/sync-ecommerce").then(response => {
+						//console.log(response);
+						const jsonData = response.json();
+						console.log(jsonData);
+					});
+				}, 3000);
+			}
+			function stopEcommerce(){
+				clearInterval(ecommerceInterval);
+				pendingEl = document.getElementById("pending-info");
+				pendingEl.classList.toggle("hide");
+			}
+		</script>
 
 	</div>
 </body>
